@@ -1,7 +1,6 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"crypto/rand"
 	dsbadger "github.com/ipfs/go-ds-badger"
@@ -20,6 +19,7 @@ import (
 	"github.com/olympus-protocol/ogen/pkg/p2p"
 	"github.com/olympus-protocol/ogen/pkg/params"
 	"github.com/spf13/cobra"
+	"io"
 	"io/ioutil"
 	"os"
 	"sync"
@@ -120,6 +120,59 @@ func (r *relayer) subscribe() {
 
 }
 
+func (r *relayer) handleStream(s network.Stream) {
+	r.sendMessages(s.Conn().RemotePeer(), s)
+	go r.receiveMessages(s.Conn().RemotePeer(), s)
+}
+
+func (r *relayer) receiveMessages(id peer.ID, reader io.Reader) {
+	_ = r.processMessages(r.ctx, r.params.NetMagic, reader, func(message p2p.Message) error {
+		cmd := message.Command()
+		r.topics.topicsLock.Lock()
+		defer r.topics.topicsLock.Unlock()
+		topic, ok := r.topics.topics[cmd]
+		if !ok {
+			return nil
+		}
+		msg, err := message.Marshal()
+		if err != nil {
+			return nil
+		}
+		return topic.Publish(r.ctx, msg)
+	})
+}
+
+func (r *relayer) sendMessages(id peer.ID, w io.Writer) {
+	msgChan := make(chan p2p.Message)
+	go func() {
+		for msg := range msgChan {
+			err := p2p.WriteMessage(w, msg, r.params.NetMagic)
+			if err != nil {
+				r.log.Error(err)
+			}
+		}
+	}()
+}
+
+func (r *relayer) processMessages(ctx context.Context, net uint32, stream io.Reader, handler func(p2p.Message) error) error {
+	for {
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+			break
+		}
+		msg, err := p2p.ReadMessage(stream, net)
+		if err != nil {
+			return err
+		}
+
+		if err := handler(msg); err != nil {
+			return err
+		}
+	}
+}
+
 var cmd = &cobra.Command{
 	Use:   "relayer",
 	Short: "Olympus DHT relayer",
@@ -167,9 +220,6 @@ var cmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
-
-		h.SetStreamHandler(params.DiscoveryProtocolID, handleStream)
-		h.SetStreamHandler(params.SyncProtocolID, handleStream)
 
 		addrs, err := peer.AddrInfoToP2pAddrs(&peer.AddrInfo{
 			ID:    h.ID(),
@@ -222,6 +272,9 @@ var cmd = &cobra.Command{
 			topics:    t,
 		}
 
+		h.SetStreamHandler(params.DiscoveryProtocolID, relayer.handleStream)
+		h.SetStreamHandler(params.SyncProtocolID, relayer.handleStream)
+
 		relayer.subscribe()
 
 		go relayer.findPeers()
@@ -229,11 +282,6 @@ var cmd = &cobra.Command{
 
 		<-ctx.Done()
 	},
-}
-
-func handleStream(s network.Stream) {
-	_ = bufio.NewReadWriter(bufio.NewReader(s), bufio.NewWriter(s))
-
 }
 
 func loadPrivateKey() (crypto.PrivKey, error) {
