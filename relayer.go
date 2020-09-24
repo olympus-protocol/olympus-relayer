@@ -41,9 +41,10 @@ var topicsSubs = []string{
 }
 
 var (
-	debug bool
-	port  string
-	net   string
+	debug   bool
+	port    string
+	net     string
+	connect string
 )
 
 type topics struct {
@@ -216,7 +217,6 @@ var cmd = &cobra.Command{
 			libp2p.ListenAddrs([]ma.Multiaddr{listenAddress}...),
 			libp2p.Identity(priv),
 			libp2p.EnableRelay(circuit.OptActive, circuit.OptHop),
-			libp2p.NATPortMap(),
 			libp2p.Peerstore(ps),
 			libp2p.ConnectionManager(connman),
 		)
@@ -278,6 +278,21 @@ var cmd = &cobra.Command{
 		h.SetStreamHandler(params.DiscoveryProtocolID, relayer.handleStream)
 		h.SetStreamHandler(params.SyncProtocolID, relayer.handleStream)
 
+		if connect != "" {
+			ma, err := ma.NewMultiaddr(connect)
+			if err != nil {
+				log.Error(err)
+			}
+			addrInfo, err := peer.AddrInfoFromP2pAddr(ma)
+			if err != nil {
+				log.Error(err)
+			}
+			err = h.Connect(ctx, *addrInfo)
+			if err != nil {
+				log.Error(err)
+			}
+		}
+
 		relayer.subscribe()
 
 		go relayer.findPeers()
@@ -325,6 +340,7 @@ func init() {
 	cmd.Flags().BoolVar(&debug, "debug", false, "run the relayer with debug logger")
 	cmd.Flags().StringVar(&port, "port", "25000", "port on which relayer will listen")
 	cmd.Flags().StringVar(&net, "network", "testnet", "short name of the network to relay")
+	cmd.Flags().StringVar(&connect, "connect", "", "string to connect to another relayer")
 }
 
 func main() {
