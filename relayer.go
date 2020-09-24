@@ -128,6 +128,9 @@ func (r *relayer) handleStream(s network.Stream) {
 func (r *relayer) receiveMessages(id peer.ID, reader io.Reader) {
 	_ = r.processMessages(r.ctx, r.params.NetMagic, reader, func(message p2p.Message) error {
 		cmd := message.Command()
+
+		r.log.Tracef("processing message %s from peer %s", cmd, id)
+
 		r.topics.topicsLock.Lock()
 		defer r.topics.topicsLock.Unlock()
 		topic, ok := r.topics.topics[cmd]
