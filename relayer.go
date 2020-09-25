@@ -1,8 +1,10 @@
 package main
 
 import (
+	"bufio"
 	"context"
 	"crypto/rand"
+	"fmt"
 	dsbadger "github.com/ipfs/go-ds-badger"
 	"github.com/libp2p/go-libp2p"
 	circuit "github.com/libp2p/go-libp2p-circuit"
@@ -121,41 +123,56 @@ func (r *relayer) subscribe() {
 
 }
 
-func (r *relayer) handleStream(s network.Stream) {
-	r.sendMessages(s.Conn().RemotePeer(), s)
-	go r.receiveMessages(s.Conn().RemotePeer(), s)
+func (r *relayer) handleStream(stream network.Stream) {
+	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
+
+	go readData(rw)
+	go writeData(rw)
 }
 
-func (r *relayer) receiveMessages(id peer.ID, reader io.Reader) {
-	_ = r.processMessages(r.ctx, r.params.NetMagic, reader, func(message p2p.Message) error {
-		cmd := message.Command()
-
-		r.log.Tracef("processing message %s from peer %s", cmd, id)
-
-		r.topics.topicsLock.Lock()
-		defer r.topics.topicsLock.Unlock()
-		topic, ok := r.topics.topics[cmd]
-		if !ok {
-			return nil
-		}
-		msg, err := message.Marshal()
+func readData(rw *bufio.ReadWriter) {
+	for {
+		str, err := rw.ReadString('\n')
 		if err != nil {
-			return nil
+			fmt.Println("Error reading from buffer")
+			panic(err)
 		}
-		return topic.Publish(r.ctx, msg)
-	})
+
+		if str == "" {
+			return
+		}
+
+		if str != "\n" {
+			// Green console colour: 	\x1b[32m
+			// Reset console colour: 	\x1b[0m
+			fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
+		}
+
+	}
 }
 
-func (r *relayer) sendMessages(id peer.ID, w io.Writer) {
-	msgChan := make(chan p2p.Message)
-	go func() {
-		for msg := range msgChan {
-			err := p2p.WriteMessage(w, msg, r.params.NetMagic)
-			if err != nil {
-				r.log.Error(err)
-			}
+func writeData(rw *bufio.ReadWriter) {
+	stdReader := bufio.NewReader(os.Stdin)
+
+	for {
+		fmt.Print("> ")
+		sendData, err := stdReader.ReadString('\n')
+		if err != nil {
+			fmt.Println("Error reading from stdin")
+			panic(err)
 		}
-	}()
+
+		_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
+		if err != nil {
+			fmt.Println("Error writing to buffer")
+			panic(err)
+		}
+		err = rw.Flush()
+		if err != nil {
+			fmt.Println("Error flushing buffer")
+			panic(err)
+		}
+	}
 }
 
 func (r *relayer) processMessages(ctx context.Context, net uint32, stream io.Reader, handler func(p2p.Message) error) error {
