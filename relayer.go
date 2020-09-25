@@ -55,13 +55,15 @@ type topics struct {
 }
 
 type relayer struct {
-	ID        peer.ID
-	log       logger.Logger
-	ctx       context.Context
-	discovery *discovery.RoutingDiscovery
-	dht       *dht.IpfsDHT
-	params    *params.ChainParams
-	topics    *topics
+	ID               peer.ID
+	log              logger.Logger
+	ctx              context.Context
+	discovery        *discovery.RoutingDiscovery
+	dht              *dht.IpfsDHT
+	params           *params.ChainParams
+	topics           *topics
+	syncHandler      *syncHandler
+	discoveryHandler *discoveryHandler
 }
 
 func (r *relayer) findPeers() {
@@ -220,6 +222,11 @@ var cmd = &cobra.Command{
 		if err != nil {
 			log.Fatal(err)
 		}
+		discoveryHandler := NewDiscoveryHandler(ctx)
+		h.Network().Notify(discoveryHandler)
+
+		syncHandler := NewSyncHandler(ctx)
+		h.Network().Notify(syncHandler)
 
 		addrs, err := peer.AddrInfoToP2pAddrs(&peer.AddrInfo{
 			ID:    h.ID(),
@@ -258,13 +265,15 @@ var cmd = &cobra.Command{
 		}
 
 		relayer := relayer{
-			ID:        h.ID(),
-			log:       log,
-			discovery: r,
-			dht:       idht,
-			ctx:       ctx,
-			params:    netParams,
-			topics:    t,
+			ID:               h.ID(),
+			log:              log,
+			discovery:        r,
+			dht:              idht,
+			ctx:              ctx,
+			params:           netParams,
+			topics:           t,
+			discoveryHandler: discoveryHandler,
+			syncHandler:      syncHandler,
 		}
 
 		h.SetStreamHandler(params.DiscoveryProtocolID, relayer.handleStream)
