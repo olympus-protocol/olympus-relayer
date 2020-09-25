@@ -1,13 +1,10 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"crypto/rand"
-	"fmt"
 	dsbadger "github.com/ipfs/go-ds-badger"
 	"github.com/libp2p/go-libp2p"
-	circuit "github.com/libp2p/go-libp2p-circuit"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/crypto"
 	"github.com/libp2p/go-libp2p-core/network"
@@ -123,56 +120,28 @@ func (r *relayer) subscribe() {
 
 }
 
-func (r *relayer) handleStream(stream network.Stream) {
-	rw := bufio.NewReadWriter(bufio.NewReader(stream), bufio.NewWriter(stream))
-
-	go readData(rw)
-	go writeData(rw)
+func (r *relayer) handleStream(s network.Stream) {
+	go r.receiveMessages(s.Conn().RemotePeer(), s)
 }
 
-func readData(rw *bufio.ReadWriter) {
-	for {
-		str, err := rw.ReadString('\n')
+func (r *relayer) receiveMessages(id peer.ID, reader io.Reader) {
+	_ = r.processMessages(r.ctx, r.params.NetMagic, reader, func(message p2p.Message) error {
+		cmd := message.Command()
+
+		r.log.Tracef("processing message %s from peer %s", cmd, id)
+
+		r.topics.topicsLock.Lock()
+		defer r.topics.topicsLock.Unlock()
+		topic, ok := r.topics.topics[cmd]
+		if !ok {
+			return nil
+		}
+		msg, err := message.Marshal()
 		if err != nil {
-			fmt.Println("Error reading from buffer")
-			panic(err)
+			return nil
 		}
-
-		if str == "" {
-			return
-		}
-
-		if str != "\n" {
-			// Green console colour: 	\x1b[32m
-			// Reset console colour: 	\x1b[0m
-			fmt.Printf("\x1b[32m%s\x1b[0m> ", str)
-		}
-
-	}
-}
-
-func writeData(rw *bufio.ReadWriter) {
-	stdReader := bufio.NewReader(os.Stdin)
-
-	for {
-		fmt.Print("> ")
-		sendData, err := stdReader.ReadString('\n')
-		if err != nil {
-			fmt.Println("Error reading from stdin")
-			panic(err)
-		}
-
-		_, err = rw.WriteString(fmt.Sprintf("%s\n", sendData))
-		if err != nil {
-			fmt.Println("Error writing to buffer")
-			panic(err)
-		}
-		err = rw.Flush()
-		if err != nil {
-			fmt.Println("Error flushing buffer")
-			panic(err)
-		}
-	}
+		return topic.Publish(r.ctx, msg)
+	})
 }
 
 func (r *relayer) processMessages(ctx context.Context, net uint32, stream io.Reader, handler func(p2p.Message) error) error {
@@ -222,7 +191,7 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		connman := connmgr.NewConnManager(2, 64, time.Second*60)
+		connman := connmgr.NewConnManager(1, 2048, time.Second*60)
 
 		listenAddress, err := ma.NewMultiaddr("/ip4/0.0.0.0/tcp/" + port)
 		if err != nil {
@@ -233,10 +202,10 @@ var cmd = &cobra.Command{
 			ctx,
 			libp2p.ListenAddrs([]ma.Multiaddr{listenAddress}...),
 			libp2p.Identity(priv),
-			libp2p.EnableRelay(circuit.OptActive, circuit.OptHop),
 			libp2p.Peerstore(ps),
 			libp2p.ConnectionManager(connman),
 		)
+
 		if err != nil {
 			log.Fatal(err)
 		}
