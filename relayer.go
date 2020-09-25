@@ -261,7 +261,7 @@ var cmd = &cobra.Command{
 			ID:        h.ID(),
 			log:       log,
 			discovery: r,
-			dht:       d,
+			dht:       idht,
 			ctx:       ctx,
 			params:    netParams,
 			topics:    t,
