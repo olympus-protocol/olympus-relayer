@@ -7,8 +7,10 @@ import (
 	"github.com/libp2p/go-libp2p"
 	connmgr "github.com/libp2p/go-libp2p-connmgr"
 	"github.com/libp2p/go-libp2p-core/crypto"
+	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
+	"github.com/libp2p/go-libp2p-core/routing"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/libp2p/go-libp2p-peerstore/pstoreds"
@@ -163,6 +165,8 @@ func (r *relayer) processMessages(ctx context.Context, net uint32, stream io.Rea
 	}
 }
 
+var idht *dht.IpfsDHT
+
 var cmd = &cobra.Command{
 	Use:   "relayer",
 	Short: "Olympus DHT relayer",
@@ -191,8 +195,6 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		connman := connmgr.NewConnManager(1, 2048, time.Second*60)
-
 		listenAddress, err := ma.NewMultiaddr("/ip4/0.0.0.0/tcp/" + port)
 		if err != nil {
 			log.Fatal(err)
@@ -203,7 +205,16 @@ var cmd = &cobra.Command{
 			libp2p.ListenAddrs([]ma.Multiaddr{listenAddress}...),
 			libp2p.Identity(priv),
 			libp2p.Peerstore(ps),
-			libp2p.ConnectionManager(connman),
+			libp2p.Routing(func(h host.Host) (routing.PeerRouting, error) {
+				idht, err = dht.New(ctx, h, dht.Mode(dht.ModeAuto))
+				return idht, err
+			}),
+			libp2p.ConnectionManager(connmgr.NewConnManager(
+				100,
+				400,
+				time.Minute,
+			)),
+			libp2p.EnableAutoRelay(),
 		)
 
 		if err != nil {
@@ -222,17 +233,12 @@ var cmd = &cobra.Command{
 			log.Infof("binding to address: %s", a)
 		}
 
-		d, err := dht.New(ctx, h, dht.Mode(dht.ModeAuto))
+		err = idht.Bootstrap(ctx)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		err = d.Bootstrap(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		r := discovery.NewRoutingDiscovery(d)
+		r := discovery.NewRoutingDiscovery(idht)
 
 		var netParams *params.ChainParams
 		if net == "testnet" {
