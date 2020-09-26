@@ -36,4 +36,6 @@ go build ./ &> /dev/null
 
 cp ./olympus-relayer /usr/local/bin/
 
+mkdir mkdir -p /opt/olympus-relayer
+
 configure_systemd
