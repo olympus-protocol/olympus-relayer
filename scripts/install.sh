@@ -15,7 +15,7 @@ fi
 
 echo "Installing dependencies"
 
-sudo apt install git build-essential &> /dev/null
+sudo apt install git build-essential -y &> /dev/null
 
 if ! command -v go version &> /dev/null
 then

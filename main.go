@@ -130,8 +130,8 @@ var cmd = &cobra.Command{
 		if ipv6 {
 			protocol = "ip6"
 		}
-		
-		log.Infof("binding to address: %s", "/"+protocol+" /"+ip.String()+"/tcp/"+port+"/p2p/"+h.ID().String())
+
+		log.Infof("binding to address: %s", "/"+protocol+"/"+ip.String()+"/tcp/"+port+"/p2p/"+h.ID().String())
 
 		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
 		if err != nil {
