@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"context"
+	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -37,15 +38,14 @@ type Topics struct {
 }
 
 type Relayer struct {
-	ID               peer.ID
-	log              logger.Logger
-	ctx              context.Context
-	discovery        *discovery.RoutingDiscovery
-	dht              *dht.IpfsDHT
-	params           *params.ChainParams
-	topics           *Topics
-	syncHandler      *SyncHandler
-	discoveryHandler *DiscoveryHandler
+	ID          peer.ID
+	log         logger.Logger
+	ctx         context.Context
+	discovery   *discovery.RoutingDiscovery
+	dht         *dht.IpfsDHT
+	params      *params.ChainParams
+	topics      *Topics
+	syncHandler *SyncHandler
 }
 
 func (r *Relayer) FindPeers() {
@@ -62,10 +62,12 @@ func (r *Relayer) FindPeers() {
 				for {
 					select {
 					case pi, ok := <-peers:
+						fmt.Println(pi, ok)
 						if !ok {
 							time.Sleep(time.Second * 10)
 							break peerLoop
 						}
+						r.log.Tracef("Advertised peer found %s handling...", pi.ID)
 						r.handleNewPeer(pi)
 					case <-r.ctx.Done():
 						return
@@ -107,6 +109,7 @@ func (r *Relayer) Subscribe() {
 }
 
 func (r *Relayer) HandleStream(s network.Stream) {
+	r.log.Infof("handling messages from peer %s for protocol %s", s.Conn().RemotePeer(), s.Protocol())
 	go r.receiveMessages(s.Conn().RemotePeer(), s)
 }
 
@@ -169,10 +172,6 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 		params:    p,
 		topics:    t,
 	}
-
-	discoveryHandler := NewDiscoveryHandler(ctx, h, r, log)
-	h.Network().Notify(discoveryHandler)
-	r.discoveryHandler = discoveryHandler
 
 	syncHandler := NewSyncHandler(ctx, h, r, log)
 	h.Network().Notify(syncHandler)
