@@ -38,6 +38,6 @@ rm -rf relayer
 
 git clone https://github.com/olympus-protocol/olympus-relayer relayer
 
-cd relayer && bash./scripts/build.sh
+cd relayer && bash ./scripts/build.sh
 
 
