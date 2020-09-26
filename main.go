@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
+	externalip "github.com/glendc/go-external-ip"
 	dsbadger "github.com/ipfs/go-ds-badger"
 	"github.com/libp2p/go-libp2p"
 	relay "github.com/libp2p/go-libp2p-circuit"
@@ -23,10 +24,9 @@ import (
 )
 
 var (
-	debug   bool
-	port    string
-	net     string
-	connect string
+	debug     bool
+	port      string
+	netstring string
 )
 
 var cmd = &cobra.Command{
@@ -57,14 +57,30 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		listenAddress, err := ma.NewMultiaddr("/ip4/0.0.0.0/tcp/" + port)
+		consensus := externalip.DefaultConsensus(nil, nil)
+
+		log.Info("getting external IP")
+
+		ip, err := consensus.ExternalIP()
+		if err != nil {
+			panic(err)
+		}
+
+		maIpv4, err := ma.NewMultiaddr("/ip4/" + ip.To4().String() + "/tcp/" + port)
 		if err != nil {
 			log.Fatal(err)
 		}
 
+		maIpv6, err := ma.NewMultiaddr("/ip6/" + ip.To16().String() + "/tcp/" + port)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		listenAddresses := []ma.Multiaddr{maIpv4, maIpv6}
+
 		h, err := libp2p.New(
 			ctx,
-			libp2p.ListenAddrs([]ma.Multiaddr{listenAddress}...),
+			libp2p.ListenAddrs(listenAddresses...),
 			libp2p.Identity(priv),
 			libp2p.Peerstore(ps),
 			libp2p.NATPortMap(),
@@ -82,7 +98,7 @@ var cmd = &cobra.Command{
 
 		addrs, err := peer.AddrInfoToP2pAddrs(&peer.AddrInfo{
 			ID:    h.ID(),
-			Addrs: []ma.Multiaddr{listenAddress},
+			Addrs: listenAddresses,
 		})
 		if err != nil {
 			log.Fatal(err)
@@ -105,33 +121,36 @@ var cmd = &cobra.Command{
 		r := discovery.NewRoutingDiscovery(d)
 
 		var netParams *params.ChainParams
-		if net == "testnet" {
+		if netstring == "testnet" {
 			netParams = &params.TestNet
 		} else {
 			netParams = &params.Mainnet
 		}
 
-		relayer := relayer.NewRelayer(ctx, h, log, r, d, netParams)
+		relay := relayer.NewRelayer(ctx, h, log, r, d, netParams)
 
-		if connect != "" {
-			ma, err := ma.NewMultiaddr(connect)
-			if err != nil {
-				log.Error(err)
-			}
-			addrInfo, err := peer.AddrInfoFromP2pAddr(ma)
-			if err != nil {
-				log.Error(err)
-			}
-			err = h.Connect(ctx, *addrInfo)
-			if err != nil {
-				log.Error(err)
+		for _, r := range relayer.Relayers {
+			for _, maStr := range r {
+				ma, err := ma.NewMultiaddr(maStr)
+				if err != nil {
+					continue
+				}
+				addrInfo, err := peer.AddrInfoFromP2pAddr(ma)
+				if err != nil {
+					continue
+				}
+				err = h.Connect(ctx, *addrInfo)
+				if err != nil {
+					continue
+				}
 			}
 		}
 
-		go relayer.FindPeers()
-		go relayer.Advertise()
+		go relay.FindPeers()
+		go relay.Advertise()
 
 		<-ctx.Done()
+
 	},
 }
 
@@ -172,8 +191,7 @@ func createPrivateKey() (crypto.PrivKey, error) {
 func init() {
 	cmd.Flags().BoolVar(&debug, "debug", false, "run the relayer with debug logger")
 	cmd.Flags().StringVar(&port, "port", "25000", "port on which relayer will listen")
-	cmd.Flags().StringVar(&net, "network", "testnet", "short name of the network to relay")
-	cmd.Flags().StringVar(&connect, "connect", "", "string to connect to another relayer")
+	cmd.Flags().StringVar(&netstring, "network", "testnet", "short name of the network to relay")
 }
 
 func main() {

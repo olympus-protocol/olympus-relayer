@@ -14,18 +14,12 @@ import (
 	"time"
 )
 
-var topicsSubs = []string{
-	p2p.MsgBlockCmd,
-	p2p.MsgTxCmd,
-	p2p.MsgDepositCmd,
-	p2p.MsgDepositsCmd,
-	p2p.MsgVoteCmd,
-	p2p.MsgValidatorStartCmd,
-	p2p.MsgExitCmd,
-	p2p.MsgExitsCmd,
-	p2p.MsgGovernanceCmd,
-	p2p.MsgTxMultiCmd,
-	p2p.MsgGetBlocksCmd,
+var Relayers = map[string]map[string]string{
+	"cronos": {
+		"ipv4":  "",
+		"ipv6":  "",
+		"onion": "",
+	},
 }
 
 type Relayer struct {
