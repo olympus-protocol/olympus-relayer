@@ -16,20 +16,11 @@ cat << EOF > /etc/systemd/system/olympus-relayer.service
 
     Restart=on-failure
     RestartSec=10
-    startLimitIntervalSec=60
 
     ExecStart=/usr/local/bin/olympus-relayer --datadir=/opt/olympus-relayer
     WorkingDirectory=/opt/olympus-relayer
 
     PermissionsStartOnly=true
-    PermissionsStartOnly=true
-    ExecStartPre=/bin/mkdir -p /var/log/olympus-relayer
-    ExecStartPre=/bin/chown syslog:adm /var/log/olympus-relayer
-    ExecStartPre=/bin/chmod 755 /var/log/olympus-relayer
-    StandardOutput=syslog
-    StandardError=syslog
-
-    SyslogIdentifier=olympus-relayer
 
     [Install]
     WantedBy=multi-user.target

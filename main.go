@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
+	"path"
 	"time"
 )
 
@@ -35,17 +36,26 @@ var cmd = &cobra.Command{
 	Short: "Olympus DHT relayer",
 	Long:  `Olympus DHT relayer`,
 	Run: func(cmd *cobra.Command, args []string) {
-		log := logger.New(os.Stdin)
+
+		if datadir == "" {
+			panic("Set a datadir with --datadir")
+		}
+
+		_ = os.MkdirAll(datadir, 0700)
+
+		logFile, err := os.OpenFile(path.Join(datadir, "logger.log"), os.O_CREATE|os.O_RDWR, 0755)
+		if err != nil {
+			panic(err)
+		}
+
+		log := logger.New(logFile)
+		
 		log.WithColor()
 		if debug {
 			log.WithDebug()
 		}
 
-		if datadir == "" {
-			log.Fatal("Set a datadir with --datadir")
-		}
 
-		_ = os.MkdirAll(datadir, 0700)
 
 		ctx := context.Background()
 
