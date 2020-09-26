@@ -2,9 +2,9 @@
 
 function configure_systemd() {
 
-sudo rm -rf /etc/systemd/system/olympus_relayer.service
+sudo rm -rf /etc/systemd/system/olympus-relayer.service
 
-cat << EOF > /etc/systemd/system/olympus_relayer.service
+cat << EOF > /etc/systemd/system/olympus-relayer.service
     [Unit]
     Description=Olympus Relayer
     After=network.target
@@ -18,16 +18,17 @@ cat << EOF > /etc/systemd/system/olympus_relayer.service
     RestartSec=10
     startLimitIntervalSec=60
 
-    ExecStart=/usr/local/bin/relayer
+    ExecStart=/usr/local/bin/olympus-relayer
 
     PermissionsStartOnly=true
     PermissionsStartOnly=true
-    ExecStartPre=/bin/mkdir -p /var/log/relayer
-    ExecStartPre=/bin/chown syslog:adm /var/log/relayer
-    ExecStartPre=/bin/chmod 755 /var/log/relayer
+    ExecStartPre=/bin/mkdir -p /var/log/olympus-relayer
+    ExecStartPre=/bin/chown syslog:adm /var/log/olympus-relayer
+    ExecStartPre=/bin/chmod 755 /var/log/olympus-relayer
     StandardOutput=syslog
     StandardError=syslog
-    SyslogIdentifier=relayer
+
+    SyslogIdentifier=olympus-relayer
 
     [Install]
     WantedBy=multi-user.target
@@ -39,8 +40,8 @@ EOF
 
 echo "Building and Installing Olympus Relayer"
 
-go build -o relayer ./ &> /dev/null
+go build go build ./ &> /dev/null
 
-cp ./relayer /usr/local/bin/
+cp ./olympus-relayer /usr/local/bin/
 
 configure_systemd
