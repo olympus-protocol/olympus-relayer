@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"context"
-	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	ma "github.com/multiformats/go-multiaddr"
@@ -22,7 +21,6 @@ func (d *DiscoveryHandler) Listen(network.Network, ma.Multiaddr) {}
 func (d *DiscoveryHandler) ListenClose(network.Network, ma.Multiaddr) {}
 
 func (d *DiscoveryHandler) Connected(_ network.Network, conn network.Conn) {
-	fmt.Println(conn)
 	if conn.Stat().Direction != network.DirOutbound {
 		return
 	}

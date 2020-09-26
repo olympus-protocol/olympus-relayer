@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"context"
-	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -108,7 +107,6 @@ func (r *Relayer) Subscribe() {
 }
 
 func (r *Relayer) HandleStream(s network.Stream) {
-	fmt.Println(s)
 	go r.receiveMessages(s.Conn().RemotePeer(), s)
 }
 
