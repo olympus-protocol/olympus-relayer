@@ -2,7 +2,7 @@
 
 function configure_systemd() {
 
-sudo rm -r /etc/systemd/system/olympus_relayer.service
+sudo rm -rf /etc/systemd/system/olympus_relayer.service
 
 cat << EOF > /etc/systemd/system/olympus_relayer.service
     [Unit]
