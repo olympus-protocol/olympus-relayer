@@ -18,7 +18,7 @@ echo "Checking dependencies"
 if ! command -v git version &> /dev/null
 then
     echo "Git not installed, downloading..."
-    apt install git
+    sudo apt install git
     exit
 fi
 
@@ -36,6 +36,6 @@ echo "Downloading Olympus Relayer"
 
 git clone https://github.com/olympus-protocol/olympus-relayer
 
-bash ./build.sh
+bash ./scripts/build.sh
 
 
