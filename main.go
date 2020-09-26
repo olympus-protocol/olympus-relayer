@@ -50,7 +50,6 @@ var cmd = &cobra.Command{
 			if err != nil {
 				panic(err)
 			}
-
 			log = logger.New(logFile)
 		} else {
 			log = logger.New(os.Stdin)

@@ -22,7 +22,7 @@ type Relayers struct {
 var OlympusRelayers = []Relayers{
 	{
 		Name:  "Cronos",
-		Addrs: "/ip4/104.248.120.150/tcp/25000/p2p/12D3KooWR58NXxMg5zzSbRqHAXry7tnRtMxTLQGos4735rZgbmVV",
+		Addrs: "/ip4/67.207.88.84/tcp/25000/p2p/12D3KooWGZmV63yi2tTH45XhE3bcrtaTfB7mnQNs1mFHG3SmNjoq",
 	},
 }
 
