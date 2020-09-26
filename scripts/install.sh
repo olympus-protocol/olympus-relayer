@@ -1,6 +1,19 @@
 #!/bin/bash
 
+
+arch=$(uname -i)
+
+echo "$arch"
+
+if [ "$arch" == 'x86_64' ];
+then
 export GO=go1.14.4.linux-amd64.tar.gz
+fi
+
+if [ "$arch" == 'aarch64' ];
+then
+export GO=go1.14.4.linux-arm64.tar.gz
+fi
 
 echo "Checking dependencies"
 

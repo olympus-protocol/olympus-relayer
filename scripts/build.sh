@@ -1,27 +1,30 @@
 #!/bin/bash
 
 function configure_systemd() {
-  cat << EOF > /etc/systemd/system/olympus_relayer.service
 
-[Unit]
-Description=Olympus Relayer
-After=network.target
+sudo rm -r /etc/systemd/system/olympus_relayer.service
 
-[Service]
-ExecStart=/usr/local/bin/olympus_relayer
-Type=simple
-User=root
-Restart=on-failure
-TimeoutStopSec=300
-LimitNOFILE=500000
-PrivateTmp=true
-ProtectSystem=full
-NoNewPrivileges=true
-PrivateDevices=true
-StandardOutput=append:/var/log/olympus_relayer.log
-[Install]
-WantedBy=multi-user.target
+cat << EOF > /etc/systemd/system/olympus_relayer.service
+    [Unit]
+    Description=Olympus Relayer
+    After=network.target
+
+    [Service]
+    ExecStart=/usr/local/bin/olympus_relayer
+    Type=simple
+    User=root
+    Restart=on-failure
+    TimeoutStopSec=300
+    LimitNOFILE=500000
+    PrivateTmp=true
+    ProtectSystem=full
+    NoNewPrivileges=true
+    PrivateDevices=true
+    StandardOutput=append:/var/log/olympus_relayer.log
+    [Install]
+    WantedBy=multi-user.target
 EOF
+
   systemctl daemon-reload
   sleep 3
 }

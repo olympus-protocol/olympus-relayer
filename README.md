@@ -5,6 +5,10 @@ Olympus Relayer uses libp2p DHT to relay addresses and version related nodes to 
 
 It uses protocol specifications defined on [Ogen](https://github.com/olympus-protocol/ogen)
 
+## Important
+
+This program is built and tested on linux environments.
+
 ## Usage
 
 > Download golang and dependencies to build a binary for Olympus Relayer.
