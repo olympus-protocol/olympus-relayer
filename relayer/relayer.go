@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"context"
+	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -107,6 +108,7 @@ func (r *Relayer) Subscribe() {
 }
 
 func (r *Relayer) HandleStream(s network.Stream) {
+	fmt.Println(s)
 	go r.receiveMessages(s.Conn().RemotePeer(), s)
 }
 
@@ -149,7 +151,7 @@ func (r *Relayer) processMessages(ctx context.Context, net uint32, stream io.Rea
 	}
 }
 
-func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *discovery.RoutingDiscovery, dht *dht.IpfsDHT, params *params.ChainParams) *Relayer {
+func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *discovery.RoutingDiscovery, dht *dht.IpfsDHT, p *params.ChainParams) *Relayer {
 	g, err := pubsub.NewGossipSub(ctx, h)
 	if err != nil {
 		log.Fatal(err)
@@ -160,16 +162,14 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 		Topics: make(map[string]*pubsub.Topic),
 	}
 
-
-
 	r := &Relayer{
-		ID:               h.ID(),
-		log:              log,
-		ctx:              ctx,
-		discovery:        discovery,
-		dht:              dht,
-		params:           params,
-		topics:           t,
+		ID:        h.ID(),
+		log:       log,
+		ctx:       ctx,
+		discovery: discovery,
+		dht:       dht,
+		params:    p,
+		topics:    t,
 	}
 
 	discoveryHandler := NewDiscoveryHandler(ctx, h, r, log)
@@ -179,6 +179,9 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 	syncHandler := NewSyncHandler(ctx, h, r, log)
 	h.Network().Notify(syncHandler)
 	r.syncHandler = syncHandler
+
+	h.SetStreamHandler(params.DiscoveryProtocolID, r.HandleStream)
+	h.SetStreamHandler(params.SyncProtocolID, r.HandleStream)
 
 	return r
 }

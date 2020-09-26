@@ -114,9 +114,6 @@ var cmd = &cobra.Command{
 
 		relayer := relayer.NewRelayer(ctx, h, log, r, idht, netParams)
 
-		h.SetStreamHandler(params.DiscoveryProtocolID, relayer.HandleStream)
-		h.SetStreamHandler(params.SyncProtocolID, relayer.HandleStream)
-
 		if connect != "" {
 			ma, err := ma.NewMultiaddr(connect)
 			if err != nil {
