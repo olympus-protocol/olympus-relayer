@@ -90,7 +90,7 @@ var cmd = &cobra.Command{
 		var listenAddress []ma.Multiaddr
 
 		ipv6 := false
-		if ip.To4() != nil {
+		if ip.To4() == nil {
 			ipv6 = true
 		}
 
@@ -115,7 +115,7 @@ var cmd = &cobra.Command{
 			libp2p.Peerstore(ps),
 			libp2p.NATPortMap(),
 			libp2p.ConnectionManager(connmgr.NewConnManager(
-				1,
+				256,
 				2048,
 				time.Minute,
 			)),
