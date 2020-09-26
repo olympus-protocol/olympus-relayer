@@ -92,7 +92,7 @@ var cmd = &cobra.Command{
 			log.Infof("binding to address: %s", a)
 		}
 
-		d, err := dht.New(ctx, h, dht.Mode(dht.ModeAuto))
+		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
 		if err != nil {
 			log.Fatal(err)
 		}
