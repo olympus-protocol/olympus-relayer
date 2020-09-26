@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"context"
-	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -62,7 +61,6 @@ func (r *Relayer) FindPeers() {
 				for {
 					select {
 					case pi, ok := <-peers:
-						fmt.Println(pi, ok)
 						if !ok {
 							time.Sleep(time.Second * 10)
 							break peerLoop
