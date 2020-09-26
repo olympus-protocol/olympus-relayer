@@ -14,6 +14,6 @@ This program is built and tested on linux environments.
 > Download golang and dependencies to build a binary for Olympus Relayer.
 
 ```bash
-curl -s https://raw.githubusercontent.com/olympus-protocol/olympus-relayer/master/scripts/install.sh | sudo bash
+bash <(wget --no-cache -qO- https://raw.githubusercontent.com/olympus-protocol/olympus-relayer/master/scripts/install.sh)
 ```
 

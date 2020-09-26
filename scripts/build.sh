@@ -10,17 +10,25 @@ cat << EOF > /etc/systemd/system/olympus_relayer.service
     After=network.target
 
     [Service]
-    ExecStart=/usr/local/bin/olympus_relayer
     Type=simple
     User=root
+    LimitNOFILE=1024
+
     Restart=on-failure
-    TimeoutStopSec=300
-    LimitNOFILE=500000
-    PrivateTmp=true
-    ProtectSystem=full
-    NoNewPrivileges=true
-    PrivateDevices=true
-    StandardOutput=append:/var/log/olympus_relayer.log
+    RestartSec=10
+    startLimitIntervalSec=60
+
+    ExecStart=/usr/local/bin/relayer
+
+    PermissionsStartOnly=true
+    PermissionsStartOnly=true
+    ExecStartPre=/bin/mkdir -p /var/log/relayer
+    ExecStartPre=/bin/chown syslog:adm /var/log/relayer
+    ExecStartPre=/bin/chmod 755 /var/log/relayer
+    StandardOutput=syslog
+    StandardError=syslog
+    SyslogIdentifier=relayer
+
     [Install]
     WantedBy=multi-user.target
 EOF
@@ -31,8 +39,8 @@ EOF
 
 echo "Building and Installing Olympus Relayer"
 
-go build ./ &> /dev/null
+go build -o relayer ./ &> /dev/null
 
-cp ./olympus-relayer /usr/local/bin/
+cp ./relayer /usr/local/bin/
 
 configure_systemd
