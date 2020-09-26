@@ -22,6 +22,10 @@ cat << EOF > /etc/systemd/system/olympus-relayer.service
 
     PermissionsStartOnly=true
 
+    StandardOutput=syslog
+    StandardError=syslog
+    SyslogIdentifier=olympus-relayer
+
     [Install]
     WantedBy=multi-user.target
 EOF
