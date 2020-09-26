@@ -67,6 +67,7 @@ var cmd = &cobra.Command{
 			libp2p.ListenAddrs([]ma.Multiaddr{listenAddress}...),
 			libp2p.Identity(priv),
 			libp2p.Peerstore(ps),
+			libp2p.NATPortMap(),
 			libp2p.ConnectionManager(connmgr.NewConnManager(
 				1,
 				2048,
