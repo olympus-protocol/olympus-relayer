@@ -31,7 +31,7 @@ EOF
 
 echo "Building and Installing Olympus Relayer"
 
-go build ./
+go build ./ &> /dev/null
 
 cp ./olympus-relayer /usr/local/bin/
 
