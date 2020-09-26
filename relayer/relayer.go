@@ -14,11 +14,15 @@ import (
 	"time"
 )
 
-var Relayers = map[string]map[string]string{
-	"cronos": {
-		"ipv4":  "",
-		"ipv6":  "",
-		"onion": "",
+type Relayers struct {
+	Name  string
+	Addrs string
+}
+
+var OlympusRelayers = []Relayers{
+	{
+		Name:  "Cronos",
+		Addrs: "/ip4/104.248.120.150/tcp/25000/p2p/12D3KooWR58NXxMg5zzSbRqHAXry7tnRtMxTLQGos4735rZgbmVV",
 	},
 }
 

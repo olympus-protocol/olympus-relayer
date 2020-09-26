@@ -59,28 +59,26 @@ var cmd = &cobra.Command{
 
 		consensus := externalip.DefaultConsensus(nil, nil)
 
-		log.Info("getting external IP")
+		log.Info("Getting external IP")
 
 		ip, err := consensus.ExternalIP()
 		if err != nil {
 			panic(err)
 		}
 
-		maIpv4, err := ma.NewMultiaddr("/ip4/" + ip.To4().String() + "/tcp/" + port)
+		var listenAddress []ma.Multiaddr
+
+		maIpv4, err := ma.NewMultiaddr("/ip4/0.0.0.0/tcp/" + port)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		maIpv6, err := ma.NewMultiaddr("/ip6/" + ip.To16().String() + "/tcp/" + port)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		listenAddresses := []ma.Multiaddr{maIpv4, maIpv6}
+		// TODO here we can add more IPv6
+		listenAddress = append(listenAddress, maIpv4)
 
 		h, err := libp2p.New(
 			ctx,
-			libp2p.ListenAddrs(listenAddresses...),
+			libp2p.ListenAddrs(listenAddress...),
 			libp2p.Identity(priv),
 			libp2p.Peerstore(ps),
 			libp2p.NATPortMap(),
@@ -96,17 +94,7 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		addrs, err := peer.AddrInfoToP2pAddrs(&peer.AddrInfo{
-			ID:    h.ID(),
-			Addrs: listenAddresses,
-		})
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		for _, a := range addrs {
-			log.Infof("binding to address: %s", a)
-		}
+		log.Infof("binding to address: %s", "/ip4/"+ip.String()+"/tcp/"+port+"/p2p/"+h.ID().String())
 
 		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
 		if err != nil {
@@ -129,20 +117,25 @@ var cmd = &cobra.Command{
 
 		relay := relayer.NewRelayer(ctx, h, log, r, d, netParams)
 
-		for _, r := range relayer.Relayers {
-			for _, maStr := range r {
-				ma, err := ma.NewMultiaddr(maStr)
-				if err != nil {
-					continue
-				}
-				addrInfo, err := peer.AddrInfoFromP2pAddr(ma)
-				if err != nil {
-					continue
-				}
-				err = h.Connect(ctx, *addrInfo)
-				if err != nil {
-					continue
-				}
+		for _, r := range relayer.OlympusRelayers {
+			ma, err := ma.NewMultiaddr(r.Addrs)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			peerAddr, err := peer.AddrInfoFromP2pAddr(ma)
+			if err != nil {
+				log.Error(err)
+				continue
+			}
+			if peerAddr.ID == h.ID() {
+				continue
+			}
+			log.Infof("Connecting to %s", r.Name)
+			err = h.Connect(ctx, *peerAddr)
+			if err != nil {
+				log.Error(err)
+				continue
 			}
 		}
 
