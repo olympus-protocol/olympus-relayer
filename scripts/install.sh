@@ -34,8 +34,9 @@ fi
 
 echo "Downloading Olympus Relayer"
 
-rm -rf ./olympus-relayer
-git clone https://github.com/olympus-protocol/olympus-relayer
+rm -rf relayer
+
+git clone https://github.com/olympus-protocol/olympus-relayer relayer
 
 bash ./scripts/build.sh
 
