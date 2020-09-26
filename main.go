@@ -89,7 +89,18 @@ var cmd = &cobra.Command{
 
 		var listenAddress []ma.Multiaddr
 
-		maIpv4, err := ma.NewMultiaddr("/ip4/0.0.0.0/tcp/" + port)
+		ipv6 := false
+		if ip.To4() != nil {
+			ipv6 = true
+		}
+
+		var maStr string
+		if ipv6 {
+			maStr = "/ip6/::/tcp/"
+		} else {
+			maStr = "/ip4/0.0.0.0/tcp/"
+		}
+		maIpv4, err := ma.NewMultiaddr(maStr + port)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -115,7 +126,12 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		log.Infof("binding to address: %s", "/ip4/"+ip.String()+"/tcp/"+port+"/p2p/"+h.ID().String())
+		protocol := "ip4"
+		if ipv6 {
+			protocol = "ip6"
+		}
+		
+		log.Infof("binding to address: %s", "/"+protocol+" /"+ip.String()+"/tcp/"+port+"/p2p/"+h.ID().String())
 
 		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
 		if err != nil {
