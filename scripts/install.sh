@@ -13,14 +13,9 @@ then
 export GO=go1.14.4.linux-arm64.tar.gz
 fi
 
-echo "Checking dependencies"
+echo "Installing dependencies"
 
-if ! command -v git version &> /dev/null
-then
-    echo "Git not installed, downloading..."
-    sudo apt install git &> /dev/null
-    exit
-fi
+sudo apt install git build-essential &> /dev/null
 
 if ! command -v go version &> /dev/null
 then
@@ -29,7 +24,6 @@ then
     tar zxf ${GO} && rm ${GO}
     ln -s /opt/go/bin/go /usr/bin/
     export GOPATH=/root/go
-    exit
 fi
 
 echo "Downloading Olympus Relayer"
