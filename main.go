@@ -128,8 +128,6 @@ var cmd = &cobra.Command{
 			}
 		}
 
-		relayer.Subscribe()
-
 		go relayer.FindPeers()
 		go relayer.Advertise()
 
