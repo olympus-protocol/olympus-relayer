@@ -2,7 +2,6 @@ package relayer
 
 import (
 	"context"
-	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -46,6 +45,7 @@ type Relayer struct {
 	params      *params.ChainParams
 	topics      *Topics
 	syncHandler *SyncHandler
+	host        host.Host
 }
 
 func (r *Relayer) FindPeers() {
@@ -62,12 +62,10 @@ func (r *Relayer) FindPeers() {
 				for {
 					select {
 					case pi, ok := <-peers:
-						fmt.Println(pi, ok)
 						if !ok {
 							time.Sleep(time.Second * 10)
 							break peerLoop
 						}
-						r.log.Tracef("Advertised peer found %s handling...", pi.ID)
 						r.handleNewPeer(pi)
 					case <-r.ctx.Done():
 						return
@@ -90,7 +88,11 @@ func (r *Relayer) handleNewPeer(pi peer.AddrInfo) {
 	if pi.ID == r.ID {
 		return
 	}
-	r.log.Debugf("peer found: %s", pi.String())
+	r.log.Infof("peer found: %s", pi.String())
+	err := r.host.Connect(r.ctx, pi)
+	if err != nil {
+		r.log.Errorf("unable to connect to peer: %s", pi.String())
+	}
 }
 
 func (r *Relayer) Subscribe() {
@@ -110,7 +112,20 @@ func (r *Relayer) Subscribe() {
 
 func (r *Relayer) HandleStream(s network.Stream) {
 	r.log.Infof("handling messages from peer %s for protocol %s", s.Conn().RemotePeer(), s.Protocol())
+	r.sendMessages(s.Conn().RemotePeer(), s)
 	go r.receiveMessages(s.Conn().RemotePeer(), s)
+}
+
+func (r *Relayer) sendMessages(id peer.ID, w io.Writer) {
+	msgChan := make(chan p2p.Message)
+	go func() {
+		for msg := range msgChan {
+			err := p2p.WriteMessage(w, msg, r.params.NetMagic)
+			if err != nil {
+				r.log.Error(err)
+			}
+		}
+	}()
 }
 
 func (r *Relayer) receiveMessages(id peer.ID, reader io.Reader) {
@@ -164,6 +179,7 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 	}
 
 	r := &Relayer{
+		host:      h,
 		ID:        h.ID(),
 		log:       log,
 		ctx:       ctx,
