@@ -23,8 +23,7 @@ fi
 
 echo "Downloading Olympus Relayer"
 
-git clone https://github.com/olympus-protocol/olympus-relayer && cd ./olympus-relayer || exit
-go build ./
+git clone https://github.com/olympus-protocol/olympus-relayer
 
-./olympus-relayer
+
 
