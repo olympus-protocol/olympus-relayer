@@ -5,29 +5,25 @@ function configure_systemd() {
 sudo rm -rf /etc/systemd/system/olympus-relayer.service
 
 cat << EOF > /etc/systemd/system/olympus-relayer.service
-    [Unit]
-    Description=Olympus Relayer
-    After=network.target
+[Unit]
+Description=Olympus Relayer
+After=network.target
 
-    [Service]
-    Type=simple
-    User=root
-    LimitNOFILE=1024
+[Service]
+Type=simple
+User=root
+LimitNOFILE=1024
 
-    Restart=on-failure
-    RestartSec=10
+Restart=on-failure
+RestartSec=10
 
-    ExecStart=/usr/local/bin/olympus-relayer --datadir=/opt/olympus-relayer
-    WorkingDirectory=/opt/olympus-relayer
+ExecStart=/usr/local/bin/olympus-relayer --datadir=/opt/olympus-relayer --logfile
+ WorkingDirectory=/opt/olympus-relayer
 
-    PermissionsStartOnly=true
+PermissionsStartOnly=true
 
-    StandardOutput=syslog
-    StandardError=syslog
-    SyslogIdentifier=olympus-relayer
-
-    [Install]
-    WantedBy=multi-user.target
+[Install]
+WantedBy=multi-user.target
 EOF
 
   systemctl daemon-reload

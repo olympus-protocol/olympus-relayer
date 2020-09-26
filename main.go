@@ -20,6 +20,7 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
+	"path"
 	"time"
 )
 
@@ -28,6 +29,7 @@ var (
 	debug     bool
 	port      string
 	netstring string
+	logfile   bool
 )
 
 var cmd = &cobra.Command{
@@ -42,14 +44,22 @@ var cmd = &cobra.Command{
 
 		_ = os.MkdirAll(datadir, 0700)
 
-		log := logger.New(os.Stdin)
-		
-		log.WithColor()
+		var log logger.Logger
+		if logfile {
+			logFile, err := os.OpenFile(path.Join(datadir, "logger.log"), os.O_CREATE|os.O_RDWR, 0755)
+			if err != nil {
+				panic(err)
+			}
+
+			log = logger.New(logFile)
+		} else {
+			log = logger.New(os.Stdin)
+			log.WithColor()
+		}
+
 		if debug {
 			log.WithDebug()
 		}
-
-
 
 		ctx := context.Background()
 
@@ -197,6 +207,7 @@ func init() {
 	cmd.Flags().StringVar(&port, "port", "25000", "port on which relayer will listen")
 	cmd.Flags().StringVar(&netstring, "network", "testnet", "short name of the network to relay")
 	cmd.Flags().StringVar(&datadir, "datadir", "", "directory to save the peerstore and the private key")
+	cmd.Flags().BoolVar(&logfile, "logfile", false, "enable logging into a file")
 }
 
 func main() {
