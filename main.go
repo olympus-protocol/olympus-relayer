@@ -20,7 +20,6 @@ import (
 	"github.com/spf13/cobra"
 	"io/ioutil"
 	"os"
-	"path"
 	"time"
 )
 
@@ -43,12 +42,7 @@ var cmd = &cobra.Command{
 
 		_ = os.MkdirAll(datadir, 0700)
 
-		logFile, err := os.OpenFile(path.Join(datadir, "logger.log"), os.O_CREATE|os.O_RDWR, 0755)
-		if err != nil {
-			panic(err)
-		}
-
-		log := logger.New(logFile)
+		log := logger.New(os.Stdin)
 		
 		log.WithColor()
 		if debug {
