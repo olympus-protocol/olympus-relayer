@@ -88,10 +88,13 @@ func (r *Relayer) handleNewPeer(pi peer.AddrInfo) {
 	if pi.ID == r.ID {
 		return
 	}
-	r.log.Infof("peer found: %s", pi.String())
-	err := r.host.Connect(r.ctx, pi)
-	if err != nil {
-		r.log.Errorf("unable to connect to peer: %s", pi.String())
+	connectedness := r.host.Network().Connectedness(pi.ID)
+	if connectedness != network.Connected {
+		r.log.Infof("peer found: %s", pi.String())
+		err := r.host.Connect(r.ctx, pi)
+		if err != nil {
+			r.log.Errorf("unable to connect to peer: %s", pi.String())
+		}
 	}
 }
 
