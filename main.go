@@ -45,6 +45,8 @@ var cmd = &cobra.Command{
 			log.Fatal("Set a datadir with --datadir")
 		}
 
+		_ = os.MkdirAll(datadir, 0700)
+
 		ctx := context.Background()
 
 		priv, err := loadPrivateKey()
