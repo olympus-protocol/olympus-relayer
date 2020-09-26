@@ -7,12 +7,10 @@ import (
 	"github.com/libp2p/go-libp2p-core/peer"
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
-	pubsub "github.com/libp2p/go-libp2p-pubsub"
 	"github.com/olympus-protocol/ogen/pkg/logger"
 	"github.com/olympus-protocol/ogen/pkg/p2p"
 	"github.com/olympus-protocol/ogen/pkg/params"
 	"io"
-	"sync"
 	"time"
 )
 
@@ -30,12 +28,6 @@ var topicsSubs = []string{
 	p2p.MsgGetBlocksCmd,
 }
 
-type Topics struct {
-	Pubsub     *pubsub.PubSub
-	Topics     map[string]*pubsub.Topic
-	topicsLock sync.RWMutex
-}
-
 type Relayer struct {
 	ID          peer.ID
 	log         logger.Logger
@@ -43,7 +35,6 @@ type Relayer struct {
 	discovery   *discovery.RoutingDiscovery
 	dht         *dht.IpfsDHT
 	params      *params.ChainParams
-	topics      *Topics
 	syncHandler *SyncHandler
 	host        host.Host
 }
@@ -98,57 +89,8 @@ func (r *Relayer) handleNewPeer(pi peer.AddrInfo) {
 	}
 }
 
-func (r *Relayer) Subscribe() {
-	for _, topic := range topicsSubs {
-		r.log.Debugf("subscribing and relaying on topic %s", topic)
-		t, err := r.topics.Pubsub.Join(topic)
-		if err != nil {
-			r.log.Fatal(err)
-		}
-		_, err = t.Relay()
-		if err != nil {
-			r.log.Fatal(err)
-		}
-	}
-
-}
-
 func (r *Relayer) HandleStream(s network.Stream) {
 	r.log.Infof("handling messages from peer %s for protocol %s", s.Conn().RemotePeer(), s.Protocol())
-	r.sendMessages(s.Conn().RemotePeer(), s)
-	go r.receiveMessages(s.Conn().RemotePeer(), s)
-}
-
-func (r *Relayer) sendMessages(id peer.ID, w io.Writer) {
-	msgChan := make(chan p2p.Message)
-	go func() {
-		for msg := range msgChan {
-			err := p2p.WriteMessage(w, msg, r.params.NetMagic)
-			if err != nil {
-				r.log.Error(err)
-			}
-		}
-	}()
-}
-
-func (r *Relayer) receiveMessages(id peer.ID, reader io.Reader) {
-	_ = r.processMessages(r.ctx, r.params.NetMagic, reader, func(message p2p.Message) error {
-		cmd := message.Command()
-
-		r.log.Tracef("processing message %s from peer %s", cmd, id)
-
-		r.topics.topicsLock.Lock()
-		defer r.topics.topicsLock.Unlock()
-		topic, ok := r.topics.Topics[cmd]
-		if !ok {
-			return nil
-		}
-		msg, err := message.Marshal()
-		if err != nil {
-			return nil
-		}
-		return topic.Publish(r.ctx, msg)
-	})
 }
 
 func (r *Relayer) processMessages(ctx context.Context, net uint32, stream io.Reader, handler func(p2p.Message) error) error {
@@ -171,15 +113,6 @@ func (r *Relayer) processMessages(ctx context.Context, net uint32, stream io.Rea
 }
 
 func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *discovery.RoutingDiscovery, dht *dht.IpfsDHT, p *params.ChainParams) *Relayer {
-	g, err := pubsub.NewGossipSub(ctx, h)
-	if err != nil {
-		log.Fatal(err)
-	}
-
-	t := &Topics{
-		Pubsub: g,
-		Topics: make(map[string]*pubsub.Topic),
-	}
 
 	r := &Relayer{
 		host:      h,
@@ -189,7 +122,6 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 		discovery: discovery,
 		dht:       dht,
 		params:    p,
-		topics:    t,
 	}
 
 	syncHandler := NewSyncHandler(ctx, h, r, log)
