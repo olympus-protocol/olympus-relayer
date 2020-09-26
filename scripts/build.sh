@@ -39,3 +39,23 @@ cp ./olympus-relayer /usr/local/bin/
 mkdir mkdir -p /opt/olympus-relayer
 
 configure_systemd
+
+title="Olympus Relayer Installed"
+instructions_first="The program is installed in the systemd services"
+instructions_second="To start the program run 'service olympus-relayer start'"
+instructions_third="The net_key.dat, peerstore and logs are in /opt/olympus-relayer"
+instructions_fourth="Check the logs to retrieve the connection string"
+log_check="tail -f /opt/olympus-relayer/logger.log"
+
+
+printf %"$(tput cols)"s |tr " " "*"
+printf %"$(tput cols)"s |tr " " " "
+printf "%*s\n" $(((${#title}+$(tput cols))/2)) "$title"
+printf "%*s\n" $(((${#instructions_first}+$(tput cols))/2)) "$instructions_first"
+printf "%*s\n" $(((${#instructions_second}+$(tput cols))/2)) "$instructions_second"
+printf "%*s\n" $(((${#instructions_third}+$(tput cols))/2)) "$instructions_third"
+printf "%*s\n" $(((${#instructions_fourth}+$(tput cols))/2)) "$instructions_fourth"
+printf "%*s\n" $(((${#log_check}+$(tput cols))/2)) "$log_check"
+
+printf %"$(tput cols)"s |tr " " " "
+printf %"$(tput cols)"s |tr " " "*"

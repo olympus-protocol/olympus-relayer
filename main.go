@@ -164,7 +164,7 @@ var cmd = &cobra.Command{
 		go relay.Advertise()
 
 		<-ctx.Done()
-
+		log.Infof("Closing Olympus Relayer")
 	},
 }
 
