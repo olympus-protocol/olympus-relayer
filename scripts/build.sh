@@ -18,7 +18,8 @@ cat << EOF > /etc/systemd/system/olympus-relayer.service
     RestartSec=10
     startLimitIntervalSec=60
 
-    ExecStart=/usr/local/bin/olympus-relayer
+    ExecStart=/usr/local/bin/olympus-relayer --datadir=/opt/olympus-relayer
+    WorkingDirectory=/opt/olympus-relayer
 
     PermissionsStartOnly=true
     PermissionsStartOnly=true

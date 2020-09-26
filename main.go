@@ -24,6 +24,7 @@ import (
 )
 
 var (
+	datadir   string
 	debug     bool
 	port      string
 	netstring string
@@ -38,6 +39,10 @@ var cmd = &cobra.Command{
 		log.WithColor()
 		if debug {
 			log.WithDebug()
+		}
+
+		if datadir == "" {
+			log.Fatal("Set a datadir with --datadir")
 		}
 
 		ctx := context.Background()
@@ -185,6 +190,7 @@ func init() {
 	cmd.Flags().BoolVar(&debug, "debug", false, "run the relayer with debug logger")
 	cmd.Flags().StringVar(&port, "port", "25000", "port on which relayer will listen")
 	cmd.Flags().StringVar(&netstring, "network", "testnet", "short name of the network to relay")
+	cmd.Flags().StringVar(&datadir, "datadir", "", "directory to save the peerstore and the private key")
 }
 
 func main() {
