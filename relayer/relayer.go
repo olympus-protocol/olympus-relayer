@@ -2,6 +2,7 @@ package relayer
 
 import (
 	"context"
+	"fmt"
 	"github.com/libp2p/go-libp2p-core/host"
 	"github.com/libp2p/go-libp2p-core/network"
 	"github.com/libp2p/go-libp2p-core/peer"
@@ -61,6 +62,7 @@ func (r *Relayer) FindPeers() {
 				for {
 					select {
 					case pi, ok := <-peers:
+						fmt.Println(pi, ok)
 						if !ok {
 							time.Sleep(time.Second * 10)
 							break peerLoop
@@ -79,7 +81,7 @@ func (r *Relayer) FindPeers() {
 
 func (r *Relayer) Advertise() {
 	for v, rendevouz := range r.params.RendevouzStrings {
-		r.log.Infof("starting advertizing string: %s on versions higher than %d", rendevouz, v)
+		r.log.Infof("starting advertising string: %s on versions higher than %d", rendevouz, v)
 		discovery.Advertise(r.ctx, r.discovery, rendevouz)
 	}
 }
@@ -175,7 +177,6 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 	h.Network().Notify(syncHandler)
 	r.syncHandler = syncHandler
 
-	h.SetStreamHandler(params.DiscoveryProtocolID, r.HandleStream)
 	h.SetStreamHandler(params.SyncProtocolID, r.HandleStream)
 
 	return r
