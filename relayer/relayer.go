@@ -24,6 +24,10 @@ var OlympusRelayers = []Relayers{
 		Name:  "Cronos",
 		Addrs: "/ip4/67.207.88.84/tcp/25000/p2p/12D3KooWGZmV63yi2tTH45XhE3bcrtaTfB7mnQNs1mFHG3SmNjoq",
 	},
+	{
+		Name:  "Evolbyte",
+		Addrs: "/ip4/136.244.90.254/tcp/25000/p2p/12D3KooWNTqMjzeGDuyGDLm3kADGM6FWqN4fV2mem38Y1tEoxEdZ",
+	},
 }
 
 type Relayer struct {
