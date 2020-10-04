@@ -33,7 +33,7 @@ var OlympusRelayers = []Relayers{
 		Addrs: "/ip4/136.244.90.254/tcp/25000/p2p/12D3KooWNTqMjzeGDuyGDLm3kADGM6FWqN4fV2mem38Y1tEoxEdZ",
 	},
 	{
-		Name: "Stepollo",
+		Name:  "Stepollo",
 		Addrs: "/ip4/45.32.184.252/tcp/25000/p2p/12D3KooWStKhuQayJhKKqnA2HLqo2NrEP9dKhD7Ra7GM5TYUhCNW",
 	},
 }
@@ -138,7 +138,7 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 	h.Network().Notify(syncHandler)
 	r.syncHandler = syncHandler
 
-	h.SetStreamHandler(params.SyncProtocolID, r.HandleStream)
+	h.SetStreamHandler(params.ProtocolID, r.HandleStream)
 
 	return r
 }

@@ -25,7 +25,7 @@ func (s *SyncHandler) Connected(_ network.Network, conn network.Conn) {
 		return
 	}
 
-	strm, err := s.host.NewStream(s.ctx, conn.RemotePeer(), params.SyncProtocolID)
+	strm, err := s.host.NewStream(s.ctx, conn.RemotePeer(), params.ProtocolID)
 	if err != nil {
 		s.log.Errorf("could not open stream for connection: %s", err)
 	}
