@@ -13,6 +13,6 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.10.0
 	github.com/libp2p/go-libp2p-peerstore v0.2.6
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/olympus-protocol/ogen v0.1.0-alpa.1.0.20201004170621-6b66606166f0
-	github.com/spf13/cobra v1.0.0
+	github.com/olympus-protocol/ogen v0.1.0-alpha.6.0.20201027174909-b85cfbff0b4a
+	github.com/spf13/cobra v1.1.1
 )
