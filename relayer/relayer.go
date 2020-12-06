@@ -22,11 +22,11 @@ type Relayers struct {
 var OlympusRelayers = []Relayers{
 	{
 		Name:  "Cronos 1",
-		Addrs: "/ip4/134.122.28.156/tcp/25000/p2p/12D3KooWMXYnAd4vLNZ1h4yB964o2yK5rm3dWnmRvEp5UErZjqKZ",
+		Addrs: "/ip4/134.122.28.156/tcp/25000/p2p/12D3KooWDv5BH9bQhv198TXGkXygNoXrEdvEfLkKL6C5eD3EAHvi",
 	},
 	{
 		Name:  "Cronos 2",
-		Addrs: "/ip4/159.65.233.200/tcp/25000/p2p/12D3KooWQG52UmSjJWbiksovwnNEQw8oEsWL2uiFVNvQ8ij4ig3w",
+		Addrs: "/ip4/159.65.233.200/tcp/25000/p2p/12D3KooWLDdEF8zAK7tQqDN23CmC4TFZqKeo2n95BJUBaJH69h5P",
 	},
 }
 
