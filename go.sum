@@ -766,8 +766,8 @@ github.com/neo4j/neo4j-go-driver v1.8.1-0.20200803113522-b626aa943eba/go.mod h1:
 github.com/nxadm/tail v1.4.4 h1:DQuhQpB1tVlglWS2hLQ5OV6B5r8aGxSrPc5Qo6uTN78=
 github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI8A=
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
-github.com/olympus-protocol/ogen v0.0.0-20201221013754-30f71a74c644 h1:US23e5fmK479F33jExlp4pjUQZFg1Ow7MC6LULgiUoY=
-github.com/olympus-protocol/ogen v0.0.0-20201221013754-30f71a74c644/go.mod h1:QZjl9+zeZOHl+hgaXY3BoXGvwKmKrAE2xaVHANfX+Rs=
+github.com/olympus-protocol/ogen v0.0.0-20201221014358-b9e2a9526cdf h1:ikkXLGzLa2sKgC/LzzcJAHOXidt/bgfpjsYMR4fl550=
+github.com/olympus-protocol/ogen v0.0.0-20201221014358-b9e2a9526cdf/go.mod h1:QZjl9+zeZOHl+hgaXY3BoXGvwKmKrAE2xaVHANfX+Rs=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.8.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
