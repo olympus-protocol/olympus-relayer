@@ -145,18 +145,20 @@ var cmd = &cobra.Command{
 		r := discovery.NewRoutingDiscovery(d)
 
 		var netParams *params.ChainParams
-		if netstring == "testnet" {
+		switch netstring {
+		case "testnet":
 			netParams = &params.TestNet
-		} else {
+		case "devnet":
+			netParams = &params.Mainnet
+		default:
 			netParams = &params.Mainnet
 		}
 
 		relay := relayer.NewRelayer(ctx, h, log, r, d, netParams)
 
-		for _, r := range relayer.OlympusRelayers {
-			ma, err := ma.NewMultiaddr(r.Addrs)
+		for name, r := range netParams.Relayers {
+			ma, err := ma.NewMultiaddr(r)
 			if err != nil {
-				log.Error(err)
 				continue
 			}
 			peerAddr, err := peer.AddrInfoFromP2pAddr(ma)
@@ -167,7 +169,7 @@ var cmd = &cobra.Command{
 			if peerAddr.ID == h.ID() {
 				continue
 			}
-			log.Infof("Connecting to %s", r.Name)
+			log.Infof("Connecting to %s", name)
 			err = h.Connect(ctx, *peerAddr)
 			if err != nil {
 				log.Error(err)

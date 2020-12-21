@@ -19,17 +19,6 @@ type Relayers struct {
 	Addrs string
 }
 
-var OlympusRelayers = []Relayers{
-	{
-		Name:  "Cronos 1",
-		Addrs: "/ip4/134.122.28.156/tcp/25000/p2p/12D3KooWDv5BH9bQhv198TXGkXygNoXrEdvEfLkKL6C5eD3EAHvi",
-	},
-	{
-		Name:  "Cronos 2",
-		Addrs: "/ip4/159.65.233.200/tcp/25000/p2p/12D3KooWLDdEF8zAK7tQqDN23CmC4TFZqKeo2n95BJUBaJH69h5P",
-	},
-}
-
 type Relayer struct {
 	ID          peer.ID
 	log         logger.Logger
@@ -126,11 +115,11 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 		params:    p,
 	}
 
-	syncHandler := NewSyncHandler(ctx, h, r, log)
+	syncHandler := NewSyncHandler(ctx, h, r, log, p)
 	h.Network().Notify(syncHandler)
 	r.syncHandler = syncHandler
 
-	h.SetStreamHandler(params.ProtocolID, r.HandleStream)
+	h.SetStreamHandler(params.ProtocolID(p.Name), r.HandleStream)
 
 	return r
 }

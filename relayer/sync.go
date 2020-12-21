@@ -14,6 +14,7 @@ type SyncHandler struct {
 	host    host.Host
 	relayer *Relayer
 	ctx     context.Context
+	net     *params.ChainParams
 }
 
 func (s *SyncHandler) Listen(network.Network, ma.Multiaddr) {}
@@ -25,7 +26,7 @@ func (s *SyncHandler) Connected(_ network.Network, conn network.Conn) {
 		return
 	}
 
-	strm, err := s.host.NewStream(s.ctx, conn.RemotePeer(), params.ProtocolID)
+	strm, err := s.host.NewStream(s.ctx, conn.RemotePeer(), params.ProtocolID(s.net.Name))
 	if err != nil {
 		s.log.Errorf("could not open stream for connection: %s", err)
 	}
@@ -39,6 +40,6 @@ func (s *SyncHandler) OpenedStream(network.Network, network.Stream) {}
 
 func (s *SyncHandler) ClosedStream(network.Network, network.Stream) {}
 
-func NewSyncHandler(ctx context.Context, h host.Host, r *Relayer, log logger.Logger) *SyncHandler {
-	return &SyncHandler{ctx: ctx, host: h, relayer: r, log: log}
+func NewSyncHandler(ctx context.Context, h host.Host, r *Relayer, log logger.Logger, p *params.ChainParams) *SyncHandler {
+	return &SyncHandler{ctx: ctx, host: h, relayer: r, log: log, net: p}
 }
