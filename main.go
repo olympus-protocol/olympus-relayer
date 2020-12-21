@@ -149,9 +149,9 @@ var cmd = &cobra.Command{
 		case "testnet":
 			netParams = &params.TestNet
 		case "devnet":
-			netParams = &params.Mainnet
+			netParams = &params.DevNet
 		default:
-			netParams = &params.Mainnet
+			netParams = &params.MainNet
 		}
 
 		relay := relayer.NewRelayer(ctx, h, log, r, d, netParams)
