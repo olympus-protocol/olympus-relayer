@@ -31,12 +31,12 @@ type Relayer struct {
 }
 
 func (r *Relayer) FindPeers() {
-	for _, rendevouz := range r.params.RendevouzStrings {
+	for _, rendezvous := range r.params.RendevouzStrings {
 
-		go func(rendevouz string) {
-			r.log.Infof("staring listening routine for string: %s", rendevouz)
+		go func(rendezvous string) {
+			r.log.Infof("staring listening routine for string: %s", rendezvous)
 			for {
-				peers, err := r.discovery.FindPeers(r.ctx, rendevouz)
+				peers, err := r.discovery.FindPeers(r.ctx, rendezvous)
 				if err != nil {
 					break
 				}
@@ -54,15 +54,15 @@ func (r *Relayer) FindPeers() {
 					}
 				}
 			}
-		}(rendevouz)
+		}(rendezvous)
 	}
 
 }
 
 func (r *Relayer) Advertise() {
-	for v, rendevouz := range r.params.RendevouzStrings {
-		r.log.Infof("starting advertising string: %s on versions higher than %d", rendevouz, v)
-		discovery.Advertise(r.ctx, r.discovery, rendevouz)
+	for v, rendezvous := range r.params.RendevouzStrings {
+		r.log.Infof("starting advertising string: %s on versions higher than %d", rendezvous, v)
+		discovery.Advertise(r.ctx, r.discovery, rendezvous)
 	}
 }
 
