@@ -738,6 +738,8 @@ github.com/nxadm/tail v1.4.4/go.mod h1:kenIhsEOeOJmVchQTgglprH7qJGnHDVpk1VPCcaMI
 github.com/oklog/ulid v1.3.1/go.mod h1:CirwcVhetQ6Lv90oh/F+FBtV6XMibvdAFo93nm5qn4U=
 github.com/olympus-protocol/ogen v0.0.0-20201230162214-5206452b1f0c h1:O5e2Eo4UMRd94OakmOBzVTUgYUuWd7Mg+Tn9e6gmrus=
 github.com/olympus-protocol/ogen v0.0.0-20201230162214-5206452b1f0c/go.mod h1:E0fiFVC4768+odHhcUFLbrBRX2xQBp9uD4AHBScb4jo=
+github.com/olympus-protocol/ogen v0.0.0-20201230164019-c06ca3c3ffca h1:jVtSGsbLjCl1A+SU07Kt3LXuUoU+Z4SvnF92Y2S4Bzo=
+github.com/olympus-protocol/ogen v0.0.0-20201230164019-c06ca3c3ffca/go.mod h1:E0fiFVC4768+odHhcUFLbrBRX2xQBp9uD4AHBScb4jo=
 github.com/onsi/ginkgo v1.6.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.7.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
 github.com/onsi/ginkgo v1.8.0/go.mod h1:lLunBs/Ym6LB5Z9jYTR76FiuTmxDTDusOGeTQH+WWjE=
