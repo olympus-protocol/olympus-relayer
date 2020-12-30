@@ -113,7 +113,7 @@ var cmd = &cobra.Command{
 		}
 
 		for _, ma := range mas {
-			log.Infof("Binding to %s", ma.String())
+			log.Infof("Binding to %s/p2p/%s", ma.String(), h.ID().String())
 		}
 
 		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
