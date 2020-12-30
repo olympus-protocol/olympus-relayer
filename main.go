@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"crypto/rand"
-	externalip "github.com/glendc/go-external-ip"
+	"fmt"
 	dsbadger "github.com/ipfs/go-ds-badger"
 	"github.com/libp2p/go-libp2p"
 	relay "github.com/libp2p/go-libp2p-circuit"
@@ -17,10 +17,13 @@ import (
 	"github.com/olympus-protocol/ogen/pkg/logger"
 	"github.com/olympus-protocol/ogen/pkg/params"
 	"github.com/olympus-protocol/olympus-relayer/relayer"
+	"github.com/pkg/errors"
 	"github.com/spf13/cobra"
 	"io/ioutil"
+	"net"
 	"os"
 	"path"
+	"sort"
 	"time"
 )
 
@@ -77,42 +80,26 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		consensus := externalip.DefaultConsensus(nil, nil)
+		ips, err := retrieveIPAddrs()
 
-		log.Info("Getting external IP")
-
-		ip, err := consensus.ExternalIP()
-		if err != nil {
-			panic(err)
-		}
-
-		var listenAddress []ma.Multiaddr
-
-		ipv6 := false
-		if ip.To4() == nil {
-			ipv6 = true
-		}
-
-		var maStr string
-		if ipv6 {
-			maStr = "/ip6/::/tcp/"
-		} else {
-			maStr = "/ip4/0.0.0.0/tcp/"
-		}
-		maIpv4, err := ma.NewMultiaddr(maStr + port)
 		if err != nil {
 			log.Fatal(err)
 		}
 
-		// TODO here we can add more IPv6
-		listenAddress = append(listenAddress, maIpv4)
+		var mas []ma.Multiaddr
+		for _, ip := range ips {
+			ma, err := multiAddressBuilder(ip.String(), port)
+			if err != nil {
+				log.Fatal(err)
+			}
+			mas = append(mas, ma)
+		}
 
 		h, err := libp2p.New(
 			ctx,
-			libp2p.ListenAddrs(listenAddress...),
+			libp2p.ListenAddrs(mas...),
 			libp2p.Identity(priv),
 			libp2p.Peerstore(ps),
-			libp2p.NATPortMap(),
 			libp2p.ConnectionManager(connmgr.NewConnManager(
 				256,
 				2048,
@@ -125,12 +112,9 @@ var cmd = &cobra.Command{
 			log.Fatal(err)
 		}
 
-		protocol := "ip4"
-		if ipv6 {
-			protocol = "ip6"
+		for _, ma := range mas {
+			log.Infof("Binding to %s", ma.String())
 		}
-
-		log.Infof("binding to address: %s", "/"+protocol+"/"+ip.String()+"/tcp/"+port+"/p2p/"+h.ID().String())
 
 		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
 		if err != nil {
@@ -232,4 +216,58 @@ func main() {
 	if err != nil {
 		panic(err)
 	}
+}
+
+func retrieveIPAddrs() ([]net.IP, error) {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return nil, err
+	}
+	var ipAddrs []net.IP
+	for _, iface := range ifaces {
+		if iface.Flags&net.FlagUp == 0 {
+			continue // interface down
+		}
+		if iface.Flags&net.FlagLoopback != 0 {
+			continue // loopback interface
+		}
+		addrs, err := iface.Addrs()
+		if err != nil {
+			return nil, err
+		}
+		for _, addr := range addrs {
+			var ip net.IP
+			switch v := addr.(type) {
+			case *net.IPNet:
+				ip = v.IP
+			case *net.IPAddr:
+				ip = v.IP
+			}
+			if ip == nil || ip.IsLoopback() || ip.IsLinkLocalUnicast() {
+				continue
+			}
+			ipAddrs = append(ipAddrs, ip)
+		}
+	}
+	return SortAddresses(ipAddrs), nil
+}
+
+// SortAddresses sorts a set of addresses in the order of
+// ipv4 -> ipv6.
+func SortAddresses(ipAddrs []net.IP) []net.IP {
+	sort.Slice(ipAddrs, func(i, j int) bool {
+		return ipAddrs[i].To4() != nil && ipAddrs[j].To4() == nil
+	})
+	return ipAddrs
+}
+
+func multiAddressBuilder(ipAddr string, port string) (ma.Multiaddr, error) {
+	parsedIP := net.ParseIP(ipAddr)
+	if parsedIP.To4() == nil && parsedIP.To16() == nil {
+		return nil, errors.Errorf("invalid ip address provided: %s", ipAddr)
+	}
+	if parsedIP.To4() != nil {
+		return ma.NewMultiaddr(fmt.Sprintf("/ip4/%s/tcp/%s", ipAddr, port))
+	}
+	return ma.NewMultiaddr(fmt.Sprintf("/ip6/%s/tcp/%s", ipAddr, port))
 }
