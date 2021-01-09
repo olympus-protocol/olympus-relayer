@@ -132,8 +132,6 @@ var cmd = &cobra.Command{
 		switch netstring {
 		case "testnet":
 			netParams = &params.TestNet
-		case "devnet":
-			netParams = &params.DevNet
 		default:
 			netParams = &params.MainNet
 		}
