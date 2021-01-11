@@ -20,14 +20,13 @@ type Relayers struct {
 }
 
 type Relayer struct {
-	ID          peer.ID
-	log         logger.Logger
-	ctx         context.Context
-	discovery   *discovery.RoutingDiscovery
-	dht         *dht.IpfsDHT
-	params      *params.ChainParams
-	syncHandler *SyncHandler
-	host        host.Host
+	ID        peer.ID
+	log       logger.Logger
+	ctx       context.Context
+	discovery *discovery.RoutingDiscovery
+	dht       *dht.IpfsDHT
+	params    *params.ChainParams
+	host      host.Host
 }
 
 func (r *Relayer) FindPeers() {
@@ -115,11 +114,7 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 		params:    p,
 	}
 
-	syncHandler := NewSyncHandler(ctx, h, r, log, p)
-	h.Network().Notify(syncHandler)
-	r.syncHandler = syncHandler
-
-	h.SetStreamHandler(params.ProtocolID(p.Name), r.HandleStream)
+	h.SetStreamHandler(params.ProtocolDiscoveryID(p.Name), r.HandleStream)
 
 	return r
 }
