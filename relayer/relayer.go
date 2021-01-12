@@ -8,9 +8,7 @@ import (
 	discovery "github.com/libp2p/go-libp2p-discovery"
 	dht "github.com/libp2p/go-libp2p-kad-dht"
 	"github.com/olympus-protocol/ogen/pkg/logger"
-	"github.com/olympus-protocol/ogen/pkg/p2p"
 	"github.com/olympus-protocol/ogen/pkg/params"
-	"io"
 	"time"
 )
 
@@ -80,29 +78,6 @@ func (r *Relayer) handleNewPeer(pi peer.AddrInfo) {
 	}
 }
 
-func (r *Relayer) HandleStream(s network.Stream) {
-	r.log.Infof("handling messages from peer %s for protocol %s", s.Conn().RemotePeer(), s.Protocol())
-}
-
-func (r *Relayer) processMessages(ctx context.Context, net uint32, stream io.Reader, handler func(p2p.Message) error) error {
-	for {
-		select {
-		case <-ctx.Done():
-			return nil
-		default:
-			break
-		}
-		msg, err := p2p.ReadMessage(stream, net)
-		if err != nil {
-			return err
-		}
-
-		if err := handler(msg); err != nil {
-			return err
-		}
-	}
-}
-
 func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *discovery.RoutingDiscovery, dht *dht.IpfsDHT, p *params.ChainParams) *Relayer {
 
 	r := &Relayer{
@@ -115,11 +90,10 @@ func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *
 		params:    p,
 	}
 
+
 	syncHandler := NewSyncHandler(ctx, h, r, log, p)
 	h.Network().Notify(syncHandler)
 	r.syncHandler = syncHandler
-
-	h.SetStreamHandler(params.ProtocolDiscoveryID(p.Name), r.HandleStream)
 
 	return r
 }

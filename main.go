@@ -116,18 +116,6 @@ var cmd = &cobra.Command{
 			log.Infof("Binding to %s/p2p/%s", ma.String(), h.ID().String())
 		}
 
-		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer))
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		err = d.Bootstrap(ctx)
-		if err != nil {
-			log.Fatal(err)
-		}
-
-		r := discovery.NewRoutingDiscovery(d)
-
 		var netParams *params.ChainParams
 		switch netstring {
 		case "testnet":
@@ -136,9 +124,8 @@ var cmd = &cobra.Command{
 			netParams = &params.MainNet
 		}
 
-		relay := relayer.NewRelayer(ctx, h, log, r, d, netParams)
-
-		for name, r := range netParams.Relayers {
+		var bootNodes []peer.AddrInfo
+		for _, r := range netParams.Relayers {
 			ma, err := ma.NewMultiaddr(r)
 			if err != nil {
 				continue
@@ -151,13 +138,22 @@ var cmd = &cobra.Command{
 			if peerAddr.ID == h.ID() {
 				continue
 			}
-			log.Infof("Connecting to %s", name)
-			err = h.Connect(ctx, *peerAddr)
-			if err != nil {
-				log.Error(err)
-				continue
-			}
+			bootNodes = append(bootNodes, *peerAddr)
 		}
+
+		d, err := dht.New(ctx, h, dht.Mode(dht.ModeServer), dht.ProtocolPrefix(params.ProtocolID(netParams.Name)), dht.BootstrapPeers(bootNodes...))
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		err = d.Bootstrap(ctx)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		r := discovery.NewRoutingDiscovery(d)
+
+		relay := relayer.NewRelayer(ctx, h, log, r, d, netParams)
 
 		go relay.FindPeers()
 		go relay.Advertise()
