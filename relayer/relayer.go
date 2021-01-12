@@ -78,6 +78,10 @@ func (r *Relayer) handleNewPeer(pi peer.AddrInfo) {
 	}
 }
 
+func (r *Relayer) HandleStream(s network.Stream) {
+	r.log.Infof("handling messages from peer %s for protocol %s", s.Conn().RemotePeer(), s.Protocol())
+}
+
 func NewRelayer(ctx context.Context, h host.Host, log logger.Logger, discovery *discovery.RoutingDiscovery, dht *dht.IpfsDHT, p *params.ChainParams) *Relayer {
 
 	r := &Relayer{

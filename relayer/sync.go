@@ -21,7 +21,18 @@ func (s *SyncHandler) Listen(network.Network, ma.Multiaddr) {}
 
 func (s *SyncHandler) ListenClose(network.Network, ma.Multiaddr) {}
 
-func (s *SyncHandler) Connected(_ network.Network, conn network.Conn) {}
+func (s *SyncHandler) Connected(_ network.Network, conn network.Conn) {
+	if conn.Stat().Direction != network.DirOutbound {
+		return
+	}
+
+	strm, err := s.host.NewStream(s.ctx, conn.RemotePeer(), params.ProtocolID(s.net.Name))
+	if err != nil {
+		s.log.Errorf("could not open stream for connection: %s", err)
+	}
+
+	s.relayer.HandleStream(strm)
+}
 
 func (s *SyncHandler) Disconnected(network.Network, network.Conn) {}
 
