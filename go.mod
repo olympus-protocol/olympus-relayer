@@ -12,7 +12,7 @@ require (
 	github.com/libp2p/go-libp2p-kad-dht v0.11.1
 	github.com/libp2p/go-libp2p-peerstore v0.2.6
 	github.com/multiformats/go-multiaddr v0.3.1
-	github.com/olympus-protocol/ogen v0.0.0-20210111180657-90a0f3cb8889
+	github.com/olympus-protocol/ogen v0.0.0-20210109202625-0499b61c1073
 	github.com/pkg/errors v0.9.1
 	github.com/spf13/cobra v1.1.1
 )
